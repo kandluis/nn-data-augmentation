@@ -14,7 +14,7 @@ def makedir(path):
     if exc.errno == errno.EEXIST and os.path.isdir(path): pass
     else: raise
 
-def subset_tiny_imagenet(input_path, output_path, nclasses=20, percent=0.5):
+def subset_tiny_imagenet(input_path, output_path, nclasses=20, percent=0.5, flatten=True):
   """
   Copies a subset of the TinyImageNet datasets.
   Load TinyImageNet. Each of TinyImageNet-100-A, TinyImageNet-100-B, and
@@ -22,6 +22,10 @@ def subset_tiny_imagenet(input_path, output_path, nclasses=20, percent=0.5):
   to load any of them. The function can then be used to copy a random sample
   of this subset. A random set of nclasses are copied and for each class
   percent data is kept.
+
+  If flatten, it also outputs a top level images directory with all of
+  our data in flattened format. This is to faciliate style transfers.
+
   Inputs:
   - intput_path: String giving path to the directory where the orignal data is located.
   - output_path: String giving path to the directory where we output the data.
@@ -82,6 +86,12 @@ def subset_tiny_imagenet(input_path, output_path, nclasses=20, percent=0.5):
       out_img_file_path = os.path.join(output_path, 'train', wnid, 'images')
       makedir(out_img_file_path)
       shutil.copyfile(img_file_path, os.path.join(out_img_file_path, img_file))
+      if flatten:
+        makedir(os.path.join(output_path, 'testA'))
+        shutil.copyfile(img_file_path,
+                        os.path.join(output_path,
+                                     'testA',
+                                     "+".join(['train', 'wnid', 'images', img_file])))
 
   # Next copy validation data but only for the classes we've selected.
   with open(os.path.join(input_path, 'val', 'val_annotations.txt'), 'r') as f:
@@ -108,6 +118,12 @@ def subset_tiny_imagenet(input_path, output_path, nclasses=20, percent=0.5):
     out_img_file_path = os.path.join(output_path, 'val', 'images')
     makedir(out_img_file_path)
     shutil.copyfile(img_file_path, os.path.join(out_img_file_path, img_file))
+    if flatten:
+        makedir(os.path.join(output_path, 'flat'))
+        shutil.copyfile(img_file_path,
+                        os.path.join(output_path,
+                                     'flat',
+                                     "+".join(['val', 'images', img_file])))
 
   # We skip the test since we don't have access to the labels.
   
