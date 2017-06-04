@@ -43,7 +43,7 @@ def load_CIFAR10(ROOT):
 
 
 
-def load_tiny_imagenet(path, dtype=np.float32, subtract_mean=True):
+def load_tiny_imagenet(path, dtype=np.float32, subtract_mean=True, test=False):
   """
   Load TinyImageNet. Each of TinyImageNet-100-A, TinyImageNet-100-B, and
   TinyImageNet-200 have the same directory structure, so this can be used
@@ -52,6 +52,7 @@ def load_tiny_imagenet(path, dtype=np.float32, subtract_mean=True):
   - path: String giving path to the directory to load.
   - dtype: numpy datatype used to load the data.
   - subtract_mean: Whether to subtract the mean training image.
+  - test: Boolean specifying if the test data should also be loaded.
   Returns: A dictionary with the following entries:
   - class_names: A list where class_names[i] is a list of strings giving the
     WordNet names for class i in the loaded dataset.
@@ -59,7 +60,7 @@ def load_tiny_imagenet(path, dtype=np.float32, subtract_mean=True):
   - y_train: (N_tr,) array of training labels
   - X_val: (N_val, 3, 64, 64) array of validation images
   - y_val: (N_val,) array of validation labels
-  - X_test: (N_test, 3, 64, 64) array of testing images.
+  - X_test: (N_test, 3, 64, 64) array of testing images if test is true.
   - y_test: (N_test,) array of test labels; if test labels are not available
     (such as in student code) then y_test will be None.
   - mean_image: (3, 64, 64) array giving mean training image
@@ -127,31 +128,32 @@ def load_tiny_imagenet(path, dtype=np.float32, subtract_mean=True):
   # Next load test images
   # Students won't have test labels, so we need to iterate over files in the
   # images directory.
-  img_files = os.listdir(os.path.join(path, 'test', 'images'))
-  X_test = np.zeros((len(img_files), 3, 64, 64), dtype=dtype)
-  for i, img_file in enumerate(img_files):
-    img_file = os.path.join(path, 'test', 'images', img_file)
-    img = imread(img_file)
-    if img.ndim == 2:
-      img.shape = (64, 64, 1)
-    X_test[i] = img.transpose(2, 0, 1)
+  if test:
+    img_files = os.listdir(os.path.join(path, 'test', 'images'))
+    X_test = np.zeros((len(img_files), 3, 64, 64), dtype=dtype)
+    for i, img_file in enumerate(img_files):
+      img_file = os.path.join(path, 'test', 'images', img_file)
+      img = imread(img_file)
+      if img.ndim == 2:
+        img.shape = (64, 64, 1)
+      X_test[i] = img.transpose(2, 0, 1)
 
-  y_test = None
-  y_test_file = os.path.join(path, 'test', 'test_annotations.txt')
-  if os.path.isfile(y_test_file):
-    with open(y_test_file, 'r') as f:
-      img_file_to_wnid = {}
-      for line in f:
-        line = line.split('\t')
-        img_file_to_wnid[line[0]] = line[1]
-    y_test = [wnid_to_label[img_file_to_wnid[img_file]] for img_file in img_files]
-    y_test = np.array(y_test)
+    y_test = None
+    y_test_file = os.path.join(path, 'test', 'test_annotations.txt')
+    if os.path.isfile(y_test_file):
+      with open(y_test_file, 'r') as f:
+        img_file_to_wnid = {}
+        for line in f:
+          line = line.split('\t')
+          img_file_to_wnid[line[0]] = line[1]
+      y_test = [wnid_to_label[img_file_to_wnid[img_file]] for img_file in img_files]
+      y_test = np.array(y_test)
   
   mean_image = X_train.mean(axis=0)
   if subtract_mean:
     X_train -= mean_image[None]
     X_val -= mean_image[None]
-    X_test -= mean_image[None]
+    if test: X_test -= mean_image[None]
 
   return {
     'class_names': class_names,
@@ -159,8 +161,8 @@ def load_tiny_imagenet(path, dtype=np.float32, subtract_mean=True):
     'y_train': y_train,
     'X_val': X_val,
     'y_val': y_val,
-    'X_test': X_test,
-    'y_test': y_test,
+    'X_test': X_test if test else None,
+    'y_test': y_test if test else None,
     'class_names': class_names,
     'mean_image': mean_image,
   }
