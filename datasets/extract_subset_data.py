@@ -87,11 +87,12 @@ def subset_tiny_imagenet(input_path, output_path, nclasses=20, percent=0.5, flat
       makedir(out_img_file_path)
       shutil.copyfile(img_file_path, os.path.join(out_img_file_path, img_file))
       if flatten:
-        makedir(os.path.join(output_path, 'testA'))
-        shutil.copyfile(img_file_path,
-                        os.path.join(output_path,
-                                     'testA',
-                                     "+".join(['train', 'wnid', 'images', img_file])))
+        for d in ['testA', 'testB']:
+          makedir(os.path.join(output_path, d))
+          shutil.copyfile(img_file_path,
+                          os.path.join(output_path, d,
+                                       'testA',
+                                       "+".join(['train', 'wnid', 'images', img_file])))
 
   # Next copy validation data but only for the classes we've selected.
   with open(os.path.join(input_path, 'val', 'val_annotations.txt'), 'r') as f:
@@ -119,10 +120,10 @@ def subset_tiny_imagenet(input_path, output_path, nclasses=20, percent=0.5, flat
     makedir(out_img_file_path)
     shutil.copyfile(img_file_path, os.path.join(out_img_file_path, img_file))
     if flatten:
-        makedir(os.path.join(output_path, 'flat'))
+      for d in ['testA', 'testB']:
+        makedir(os.path.join(output_path, d))
         shutil.copyfile(img_file_path,
-                        os.path.join(output_path,
-                                     'flat',
+                        os.path.join(output_path, d,
                                      "+".join(['val', 'images', img_file])))
 
   # We skip the test since we don't have access to the labels.
