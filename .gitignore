@@ -7,3 +7,14 @@ results*
 
 
 *.pptx
+
+*.aux
+*.bbl
+*.blg
+*.brf
+*.fdb_latexmk
+*.fls
+*.log
+*.pdf
+*.synctex.gz
+
